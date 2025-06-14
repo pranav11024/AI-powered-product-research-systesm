@@ -1,0 +1,176 @@
+{
+  "name": "Product Research & Analysis",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoversInterval": 6
+            }
+          ]
+        }
+      },
+      "name": "Schedule Research",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT url, id FROM products WHERE updated_at < NOW() - INTERVAL '24 hours' LIMIT 10"
+      },
+      "name": "Get Products to Update",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://127.0.0.1:5001/scrape_product",
+        "options": {
+          "bodyContentType": "json"
+        },
+        "jsonBody": "{\n  \"url\": \"{{$json['url']}}\",\n  \"source\": \"generic\"\n}"
+      },
+      "name": "Scrape Product Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": "products",
+        "updateKey": "id",
+        "columnsUi": {
+          "columnToMatchOn": "id",
+          "valueToMatchOn": "={{$json['id']}}",
+          "columns": [
+            {
+              "column": "name",
+              "value": "={{$json['name']}}"
+            },
+            {
+              "column": "price",
+              "value": "={{$json['price']}}"
+            },
+            {
+              "column": "description",
+              "value": "={{$json['description']}}"
+            },
+            {
+              "column": "updated_at",
+              "value": "NOW()"
+            }
+          ]
+        }
+      },
+      "name": "Update Product",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://127.0.0.1:5001/scrape_reviews",
+        "options": {
+          "bodyContentType": "json"
+        },
+        "jsonBody": "{\n  \"url\": \"{{$json['url']}}\",\n  \"max_reviews\": 20\n}"
+      },
+      "name": "Scrape Reviews",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [650, 500]
+    },
+    {
+      "parameters": {
+        "url": "http://127.0.0.1:5000/analyze_sentiment",
+        "options": {
+          "bodyContentType": "json"
+        },
+        "jsonBody": "{\n  \"text\": \"{{$json['review_text']}}\"\n}"
+      },
+      "name": "Analyze Sentiment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [850, 500]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "reviews",
+        "columns": "product_id, reviewer_name, rating, review_text, sentiment_score, sentiment_label"
+      },
+      "name": "Save Review",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1050, 500]
+    }
+  ],
+  "connections": {
+    "Schedule Research": {
+      "main": [
+        [
+          {
+            "node": "Get Products to Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Products to Update": {
+      "main": [
+        [
+          {
+            "node": "Scrape Product Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Scrape Reviews",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape Product Data": {
+      "main": [
+        [
+          {
+            "node": "Update Product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape Reviews": {
+      "main": [
+        [
+          {
+            "node": "Analyze Sentiment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Sentiment": {
+      "main": [
+        [
+          {
+            "node": "Save Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
