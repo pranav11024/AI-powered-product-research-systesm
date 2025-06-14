@@ -97,33 +97,9 @@ curl -X POST http://127.0.0.1:8000/api/products/add \
     "url": "https://example.com/product",
     "description": "Sample product description"
   }'
-Edge Case Handling
-Graceful fallback for invalid/missing data
 
-Retry logic for DB connections and network issues
 
-Scraper uses rotating user agents and throttling
 
-Individual service isolation ensures stability
-
-Automatic cleanup of historical data
-
-Maintenance Tasks
-sql
-Copy
-Edit
--- Delete old reviews and price history
-DELETE FROM reviews WHERE scraped_at < NOW() - INTERVAL '6 months';
-DELETE FROM price_history WHERE recorded_at < NOW() - INTERVAL '1 year';
-
--- Optimize database
-VACUUM ANALYZE;
-REINDEX DATABASE product_research;
-Project Structure
-bash
-Copy
-Edit
-.
 ├── ml_service.py                  # ML & NLP backend
 ├── scraper_service.py             # Product and review scraper
 ├── api_server.py                  # Dashboard + REST API
