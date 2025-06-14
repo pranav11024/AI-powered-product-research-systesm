@@ -1,6 +1,6 @@
 # Product Research & Analysis System (n8n + AI/ML)
 
-A fully local, AI-powered product research platform that integrates web scraping, price tracking, review sentiment analysis, product clustering, and an interactive dashboard — all orchestrated with [n8n](https://n8n.io/). No cloud services required. Built for Windows, optimized for a 20GB disk footprint.
+A fully local, AI-powered product research platform that integrates web scraping, price tracking, review sentiment analysis, product clustering, and an interactive dashboard — all orchestrated with [n8n](https://n8n.io/). No cloud services required.
 
 ---
 
